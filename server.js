@@ -272,11 +272,16 @@ async function startServer() {
   // DATABASE CONNECTION
   // ========================================
   
-  const client = new MongoClient(MONGODB_URI, {
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-  });
+// Replace this section in your server.js:
+const client = new MongoClient(MONGODB_URI, {
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  family: 4, // Use IPv4, skip trying IPv6
+  tls: true,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true,
+});
+
   
   await client.connect();
   const db = client.db(DB_NAME);
