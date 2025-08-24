@@ -171,10 +171,15 @@ function updateMapTiles(theme) {
   });
   
   // Add new tile layer
-  L.tileLayer(tileUrls[theme], {
-    maxZoom: MAP_CONFIG.MAX_ZOOM,
-    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
-  }).addTo(map);
+  // L.tileLayer(tileUrls[theme], {
+  //   maxZoom: MAP_CONFIG.MAX_ZOOM,
+  //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
+  // }).addTo(map);
+
+  L.tileLayer('https://tile.openstreetmap.in/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap India contributors'
+}).addTo(map);
 }
 
 /**
