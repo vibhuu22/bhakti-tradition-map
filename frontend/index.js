@@ -176,9 +176,9 @@ function updateMapTiles(theme) {
   //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
   // }).addTo(map);
 
-  L.tileLayer('https://tile.openstreetmap.in/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '© OpenStreetMap India contributors'
+    attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 }
 
