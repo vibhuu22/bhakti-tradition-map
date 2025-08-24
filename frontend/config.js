@@ -44,7 +44,7 @@ const config = {
    */
   API_BASE: isLocalDevelopment
     ? 'http://localhost:3000/api'  // Local development server
-    : 'https://bhakti-tradition-map.onrender.com/', // Production server (UPDATE THIS!)
+    : 'https://bhakti-tradition-map.onrender.com/api', // Production server (UPDATE THIS!)
 
   // ========================================
   // MAP CONFIGURATION
