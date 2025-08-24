@@ -176,10 +176,12 @@ function updateMapTiles(theme) {
   //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
   // }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
-    attribution: '© OpenStreetMap contributors'
+    attribution: '© OpenTopoMap contributors',
+    subdomains: ['a', 'b', 'c']
 }).addTo(map);
+
 }
 
 /**
