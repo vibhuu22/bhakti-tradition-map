@@ -1,0 +1,36 @@
+{
+  "name": "bhakti-tradition-map",
+  "version": "1.0.1",
+  "type": "module",
+  "description": "Interactive map of Bhakti tradition saints and sacred places across the Indian Subcontinent",
+  "main": "server.js",
+  "author": "Bhakti Tradition Map Team",
+  "license": "MIT",
+  "keywords": ["bhakti", "tradition", "map", "sacred-places", "india", "mongodb", "leaflet", "geocoding", "heatmap"],
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js --watch server.js --watch config/",
+    "prod": "NODE_ENV=production node server.js",
+    "test": "echo \"Tests will be added in future versions\" && exit 0",
+    "build": "echo \"No build step required for this Node.js project\"",
+    "lint": "echo \"ESLint will be added in future versions\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.18.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/bhakti-tradition-map.git"
+  }
+}

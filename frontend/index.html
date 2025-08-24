@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive map exploring Bhakti tradition saints and sacred places across the Indian subcontinent">
+    <meta name="keywords" content="bhakti, saints, sacred places, india, traditions, spirituality, map">
+    <meta name="author" content="Bhakti Tradition Map Team">
+    
+    <title>Bhakti Tradition Map - Sacred Places & Saints of India</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕉️</text></svg>">
+    
+    <!-- External Stylesheets -->
+    <!-- Leaflet CSS - Core mapping library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin="">
+    
+    <!-- Leaflet MarkerCluster CSS - For grouping nearby markers -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    
+    <!-- Material Icons - For UI icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    <!-- Inter Font - Modern, readable font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Preload JavaScript modules -->
+    <link rel="modulepreload" href="config.js">
+    <link rel="modulepreload" href="index.js">
+</head>
+<body>
+    <!-- Application Root Container -->
+    <div id="app">
+        <!-- Header Section -->
+        <header>
+            <div class="header-content">
+                <!-- Left Section: Logo and Title -->
+                <div class="header-left">
+                    <div class="logo-section">
+                        <div class="logo-icon">🕉️</div>
+                        <div class="title-section">
+                            <h1>Bhakti Tradition Map</h1>
+                            <div class="header-stats">
+                                <div class="stat-item">
+                                    <span class="material-icons">place</span>
+                                    <span id="total-places">Loading...</span> Places
+                                </div>
+                                <div class="stat-item">
+                                    <span class="material-icons">person</span>
+                                    <span id="total-saints">Loading...</span> Saints
+                                </div>
+                                <div class="stat-item">
+                                    <span class="material-icons">account_balance</span>
+                                    <span id="total-traditions">Loading...</span> Traditions
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Section: Quick Filter Navigation -->
+                <div class="nav-menu">
+                    <div class="nav-group">
+                        <span class="nav-label">Quick Filters</span>
+                        <div class="quick-filters">
+                            <div class="filter-chip" data-place-type="all">
+                                <span class="material-icons">public</span>
+                                <span>All Places</span>
+                            </div>
+                            <div class="filter-chip" data-place-type="birth">
+                                <span class="material-icons">child_care</span>
+                                <span>Birth Places</span>
+                            </div>
+                            <div class="filter-chip" data-place-type="enlightenment">
+                                <span class="material-icons">wb_sunny</span>
+                                <span>Enlightenment</span>
+                            </div>
+                            <div class="filter-chip" data-place-type="samadhi">
+                                <span class="material-icons">spa</span>
+                                <span>Samadhi</span>
+                            </div>
+                            <div class="filter-chip" data-place-type="temple">
+                                <span class="material-icons">account_balance</span>
+                                <span>Temples</span>
+                            </div>
+                            <div class="filter-chip" data-place-type="influence">
+                                <span class="material-icons">trending_up</span>
+                                <span>Influence Areas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Section: Action Buttons -->
+                <div class="header-actions">
+                    <!-- Toggle Advanced Filters -->
+                    <button class="btn-action" id="btn-filters" title="Show/Hide Filters">
+                        <span class="material-icons">tune</span>
+                        <span class="btn-text">Filters</span>
+                    </button>
+
+                    <!-- Heatmap Toggle -->
+                    <button class="btn-action" id="btn-heatmap" title="Toggle Heatmap">
+                        <span class="material-icons">thermostat</span>
+                        <span class="btn-text">Heatmap</span>
+                    </button>
+
+                    <!-- Theme Selector Dropdown -->
+                    <div class="dropdown" id="theme-dropdown">
+                        <button class="btn-action dropdown-toggle" title="Change Theme">
+                            <span class="material-icons">palette</span>
+                            <span class="btn-text">Theme</span>
+                            <span class="material-icons dropdown-arrow">keyboard_arrow_down</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <button class="dropdown-item" data-theme="light">
+                                <span class="material-icons">light_mode</span>
+                                Light Theme
+                            </button>
+                            <button class="dropdown-item" data-theme="dark">
+                                <span class="material-icons">dark_mode</span>
+                                Dark Theme
+                            </button>
+                            <button class="dropdown-item" data-theme="auto">
+                                <span class="material-icons">brightness_auto</span>
+                                Auto Theme
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contribution Button -->
+                    <button class="btn-action btn-contribute" id="btn-contribute" title="Add New Saint Information">
+                        <span class="material-icons">add</span>
+                        <span class="btn-text">Contribute</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Advanced Filters Sidebar -->
+            <aside class="filters-panel hidden" id="filters-panel">
+                <div class="panel-header">
+                    <h3>
+                        <span class="material-icons">tune</span>
+                        Advanced Filters
+                    </h3>
+                    <button class="btn-close" id="close-filters" title="Close Filters">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+                
+                <div class="panel-content">
+                    <!-- Text Search Section -->
+                    <div class="filter-section">
+                        <div class="section-header">
+                            <h4>
+                                <span class="material-icons">search</span>
+                                Search
+                            </h4>
+                        </div>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="search-input">Search Saints, Traditions, or Places:</label>
+                                <input type="text" id="search-input" class="form-control" 
+                                       placeholder="e.g., Tukaram, Vaishnavism, Pandharpur...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Filters Section -->
+                    <div class="filter-section">
+                        <div class="section-header">
+                            <h4>
+                                <span class="material-icons">filter_list</span>
+                                Basic Filters
+                            </h4>
+                        </div>
+                        <div class="section-content">
+                            <!-- Saint Filter -->
+                            <div class="form-group">
+                                <label for="saint-filter">Saint/Guru:</label>
+                                <select id="saint-filter" class="form-control">
+                                    <option value="">All Saints</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Tradition Filter -->
+                            <div class="form-group">
+                                <label for="tradition-filter">Tradition:</label>
+                                <select id="tradition-filter" class="form-control">
+                                    <option value="">All Traditions</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Tradition Type Filter -->
+                            <div class="form-group">
+                                <label for="tradition-type-filter">Tradition Type:</label>
+                                <select id="tradition-type-filter" class="form-control">
+                                    <option value="">All Types</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Gender Filter -->
+                            <div class="form-group">
+                                <label for="gender-filter">Gender:</label>
+                                <select id="gender-filter" class="form-control">
+                                    <option value="">All Genders</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Language Filter -->
+                            <div class="form-group">
+                                <label for="language-filter">Language:</label>
+                                <select id="language-filter" class="form-control">
+                                    <option value="">All Languages</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Period Filter -->
+                            <div class="form-group">
+                                <label for="period-filter">Historical Period:</label>
+                                <select id="period-filter" class="form-control">
+                                    <option value="">All Periods</option>
+                                    <!-- Options populated dynamically -->
+                                </select>
+                            </div>
+
+                            <!-- Place Type Filter -->
+                            <div class="form-group">
+                                <label for="place-type-filter">Place Type:</label>
+                                <select id="place-type-filter" class="form-control">
+                                    <option value="">All Place Types</option>
+                                    <option value="birth">Birth Places</option>
+                                    <option value="enlightenment">Enlightenment Places</option>
+                                    <option value="samadhi">Samadhi Places</option>
+                                    <option value="temple">Temples</option>
+                                    <option value="influence">Areas of Influence</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="filter-actions">
+                        <button class="btn-primary" id="apply-filters">
+                            <span class="material-icons">search</span>
+                            Apply Filters
+                        </button>
+                        <button class="btn-secondary" id="clear-filters">
+                            <span class="material-icons">clear</span>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <div class="map-container">
+                <!-- Loading Overlay -->
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>Loading sacred places and tradition data...</p>
+                    </div>
+                </div>
+
+                <!-- Main Map Element -->
+                <div id="map" role="main" aria-label="Interactive map of Bhakti tradition places"></div>
+
+                <!-- Heatmap Legend -->
+                <div class="heatmap-legend hidden" id="heatmap-legend">
+                    <div class="legend-header">
+                        <h4>
+                            <span class="material-icons">thermostat</span>
+                            Heatmap Legend
+                        </h4>
+                        <button class="btn-toggle" id="toggle-heatmap-legend" title="Toggle Legend">
+                            <span class="material-icons">keyboard_arrow_up</span>
+                        </button>
+                    </div>
+                    <div class="legend-content">
+                        <div class="legend-labels">
+                            <span>Low Density</span>
+                            <span>High Density</span>
+                        </div>
+                        <div class="legend-gradient"></div>
+                        <p class="legend-description">
+                            Showing concentration of sacred places
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Map Legend Panel -->
+                <div class="legend-panel" id="legend-panel">
+                    <div class="legend-header">
+                        <h4>
+                            <span class="material-icons">map</span>
+                            Place Types
+                        </h4>
+                        <button class="btn-toggle" id="toggle-legend" title="Toggle Legend">
+                            <span class="material-icons">keyboard_arrow_down</span>
+                        </button>
+                    </div>
+                    <div class="legend-content">
+                        <div class="legend-item" data-place-type="birth">
+                            <div class="legend-info">
+                                <div class="legend-marker birth-marker">
+                                    <span class="material-icons">child_care</span>
+                                </div>
+                                <span>Birth Places</span>
+                            </div>
+                            <span class="count" id="birth-count">0</span>
+                        </div>
+
+                        <div class="legend-item" data-place-type="enlightenment">
+                            <div class="legend-info">
+                                <div class="legend-marker enlightenment-marker">
+                                    <span class="material-icons">wb_sunny</span>
+                                </div>
+                                <span>Enlightenment</span>
+                            </div>
+                            <span class="count" id="enlightenment-count">0</span>
+                        </div>
+
+                        <div class="legend-item" data-place-type="samadhi">
+                            <div class="legend-info">
+                                <div class="legend-marker samadhi-marker">
+                                    <span class="material-icons">spa</span>
+                                </div>
+                                <span>Samadhi Places</span>
+                            </div>
+                            <span class="count" id="samadhi-count">0</span>
+                        </div>
+
+                        <div class="legend-item" data-place-type="temple">
+                            <div class="legend-info">
+                                <div class="legend-marker temple-marker">
+                                    <span class="material-icons">account_balance</span>
+                                </div>
+                                <span>Temples</span>
+                            </div>
+                            <span class="count" id="temple-count">0</span>
+                        </div>
+
+                        <div class="legend-item" data-place-type="influence">
+                            <div class="legend-info">
+                                <div class="legend-marker influence-marker">
+                                    <span class="material-icons">trending_up</span>
+                                </div>
+                                <span>Influence Areas</span>
+                            </div>
+                            <span class="count" id="influence-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Contribution Modal -->
+        <div class="modal" id="contribution-modal">
+            <div class="modal-content large-modal">
+                <div class="modal-header">
+                    <h2>
+                        <span class="material-icons">add_circle</span>
+                        Contribute Saint Information
+                    </h2>
+                    <button class="btn-close" id="close-modal" title="Close Modal">
+                        <span class="material-icons">close</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="contribution-form" class="form-sections">
+                        <!-- Basic Information Section -->
+                        <div class="form-section">
+                            <h3>
+                                <span class="material-icons">person</span>
+                                Basic Information
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="saint-name">Saint/Guru Name *</label>
+                                    <input type="text" id="saint-name" name="saint" required 
+                                           placeholder="e.g., Sant Tukaram">
+                                </div>
+                                <div class="form-group">
+                                    <label for="tradition-name">Tradition Name *</label>
+                                    <input type="text" id="tradition-name" name="tradition" required 
+                                           placeholder="e.g., Varkari Sampradaya">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="period">Historical Period *</label>
+                                    <input type="text" id="period" name="period" required 
+                                           placeholder="e.g., 17th century CE, 1608-1649">
+                                </div>
+                                <div class="form-group">
+                                    <label for="gender">Gender *</label>
+                                    <select id="gender" name="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="language">Primary Language *</label>
+                                    <input type="text" id="language" name="language" required 
+                                           placeholder="e.g., Marathi, Hindi, Tamil">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tradition Classification Section -->
+                        <div class="form-section">
+                            <h3>
+                                <span class="material-icons">category</span>
+                                Tradition Classification
+                            </h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tradition-type">Tradition Type *</label>
+                                    <select id="tradition-type" name="traditionType" required>
+                                        <option value="">Select Type</option>
+                                        <option value="Nirguna">Nirguna (Formless)</option>
+                                        <option value="Saguna">Saguna (With Form)</option>
+                                        <option value="Vaishnava">Vaishnava</option>
+                                        <option value="Shaiva">Shaiva</option>
+                                        <option value="Shakta">Shakta</option>
+                                        <option value="Sufism">Sufism</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="school">School/Sub-tradition</label>
+                                    <input type="text" id="school" name="school" 
+                                           placeholder="e.g., Warkari, Chishti, Nath">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="presiding-deity">Presiding Deity</label>
+                                    <input type="text" id="presiding-deity" name="presidingDeity" 
+                                           placeholder="e.g., Vitthal, Krishna, Shiva">
+                                </div>
+                                <div class="form-group">
+                                    <div class="checkbox-group">
+                                        <input type="checkbox" id="is-sufi" name="sufi">
+                                        <label for="is-sufi">This is a Sufi tradition</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sacred Places Section -->
+                        <div class="form-section">
+                            <h3>
+                                <span class="material-icons">place</span>
+                                Sacred Places
+                            </h3>
+
+                            <!-- Birth Place -->
+                            <div class="form-group">
+                                <label for="birth-place">Birth Place</label>
+                                <div class="place-input-container">
+                                    <input type="text" id="birth-place" name="birthPlace" 
+                                           placeholder="Enter birth place name">
+                                    <ul class="place-suggestions" id="birth-place-suggestions"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Enlightenment Place -->
+                            <div class="form-group">
+                                <label for="enlightenment-place">Enlightenment Place</label>
+                                <div class="place-input-container">
+                                    <input type="text" id="enlightenment-place" name="enlightenmentPlace" 
+                                           placeholder="Place of spiritual realization">
+                                    <ul class="place-suggestions" id="enlightenment-place-suggestions"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Samadhi Place -->
+                            <div class="form-group">
+                                <label for="samadhi-place">Samadhi Place</label>
+                                <div class="place-input-container">
+                                    <input type="text" id="samadhi-place" name="samadhiPlace" 
+                                           placeholder="Final resting place">
+                                    <ul class="place-suggestions" id="samadhi-place-suggestions"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Important Temples -->
+                            <div class="form-group">
+                                <label for="temple-places">Important Temples/Places</label>
+                                <div class="place-input-container">
+                                    <input type="text" id="temple-places" name="templePlaces" 
+                                           placeholder="e.g., Pandharpur Temple, Alandi Temple (separate multiple with commas)">
+                                    <ul class="place-suggestions" id="temple-places-suggestions"></ul>
+                                </div>
+                                <small>Separate multiple places with commas</small>
+                            </div>
+
+                            <!-- Areas of Influence -->
+                            <div class="form-group">
+                                <label for="influence-areas">Areas of Influence</label>
+                                <div class="place-input-container">
+                                    <input type="text" id="influence-areas" name="influenceAreas" 
+                                           placeholder="e.g., Maharashtra, Gujarat, Rajasthan (separate with commas)">
+                                    <ul class="place-suggestions" id="influence-areas-suggestions"></ul>
+                                </div>
+                                <small>Regions where the saint's influence was significant</small>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information Section -->
+                        <div class="form-section">
+                            <h3>
+                                <span class="material-icons">library_books</span>
+                                Additional Information
+                            </h3>
+
+                            <div class="form-group">
+                                <label for="texts">Literary Works/Texts</label>
+                                <input type="text" id="texts" name="texts" 
+                                       placeholder="e.g., Abhanga, Dohe, Bhajans (separate with commas)">
+                                <small>Important literary works or types of compositions</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="philosophy">Philosophy & Teachings *</label>
+                                <textarea id="philosophy" name="philosophy" required rows="4" 
+                                          placeholder="Brief description of the saint's key philosophical teachings and spiritual message..."></textarea>
+                                <small>Describe the main philosophical contributions and spiritual teachings</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-contribution">
+                        <span class="material-icons">cancel</span>
+                        Cancel
+                    </button>
+                    <button type="submit" form="contribution-form" class="btn-primary">
+                        <span class="material-icons">send</span>
+                        Submit Contribution
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript Dependencies -->
+    
+    <!-- Leaflet Core Library -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+            crossorigin=""></script>
+    
+    <!-- Leaflet MarkerCluster Plugin -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    
+    <!-- Application Configuration and Main Script -->
+    <script type="module" src="index.js"></script>
+</body>
+</html>
