@@ -27,7 +27,7 @@ import { MongoClient } from 'mongodb';
 // ========================================
 
 const PORT = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bhakti';
 const DB_NAME = process.env.DB_NAME || 'bhakti';
 const COLLECTION = process.env.COLLECTION || 'traditions';
 
@@ -273,14 +273,7 @@ async function startServer() {
   // ========================================
   
 // Replace this section in your server.js:
-const client = new MongoClient(MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  family: 4, // Use IPv4, skip trying IPv6
-  tls: true,
-  tlsAllowInvalidCertificates: true,
-  tlsAllowInvalidHostnames: true,
-});
+const client = new MongoClient(MONGODB_URI);
 
   
   await client.connect();
