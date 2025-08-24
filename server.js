@@ -273,7 +273,18 @@ async function startServer() {
   // ========================================
   
 // Replace this section in your server.js:
-const client = new MongoClient(MONGODB_URI);
+const client = new MongoClient(MONGODB_URI, {
+  // Fix SSL issues with hosting platforms
+  tls: true,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  retryWrites: true,
+  w: 'majority'
+});
 
   
   await client.connect();
