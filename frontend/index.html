@@ -34,6 +34,9 @@
     <!-- Preload JavaScript modules -->
     <link rel="modulepreload" href="config.js">
     <link rel="modulepreload" href="index.js">
+
+    <!--NoUISlider-->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/distribute/nouislider.min.css"> -->
 </head>
 <body>
     <!-- Application Root Container -->
@@ -70,29 +73,9 @@
                     <div class="nav-group">
                         <span class="nav-label">Quick Filters</span>
                         <div class="quick-filters">
-                            <div class="filter-chip" data-place-type="all">
-                                <span class="material-icons">public</span>
-                                <span>All Places</span>
-                            </div>
                             <div class="filter-chip" data-place-type="birth">
                                 <span class="material-icons">child_care</span>
-                                <span>Birth Places</span>
-                            </div>
-                            <div class="filter-chip" data-place-type="enlightenment">
-                                <span class="material-icons">wb_sunny</span>
-                                <span>Enlightenment</span>
-                            </div>
-                            <div class="filter-chip" data-place-type="samadhi">
-                                <span class="material-icons">spa</span>
-                                <span>Samadhi</span>
-                            </div>
-                            <div class="filter-chip" data-place-type="temple">
-                                <span class="material-icons">account_balance</span>
-                                <span>Temples</span>
-                            </div>
-                            <div class="filter-chip" data-place-type="influence">
-                                <span class="material-icons">trending_up</span>
-                                <span>Influence Areas</span>
+                                <span>All Places</span>
                             </div>
                         </div>
                     </div>
@@ -106,11 +89,17 @@
                         <span class="btn-text">Filters</span>
                     </button>
 
+                    <!-- Lineage Network Toggle -->
+                    <button class="btn-action btn-lineage active" id="btn-lineage" title="Toggle Lineage Network">
+                        <span class="material-icons">timeline</span>
+                        <span class="btn-text">Lineage</span>
+                    </button>
+
                     <!-- Heatmap Toggle -->
-                    <button class="btn-action" id="btn-heatmap" title="Toggle Heatmap">
+                    <!-- <button class="btn-action" id="btn-heatmap" title="Toggle Heatmap">
                         <span class="material-icons">thermostat</span>
                         <span class="btn-text">Heatmap</span>
-                    </button>
+                    </button> -->
 
                     <!-- Theme Selector Dropdown -->
                     <div class="dropdown" id="theme-dropdown">
@@ -169,9 +158,9 @@
                         </div>
                         <div class="section-content">
                             <div class="form-group">
-                                <label for="search-input">Search Saints, Traditions, or Places:</label>
+                                <label for="search-input">Search Saints :</label>
                                 <input type="text" id="search-input" class="form-control" 
-                                       placeholder="e.g., Tukaram, Vaishnavism, Pandharpur...">
+                                       placeholder="e.g., Tukaram">
                             </div>
                         </div>
                     </div>
@@ -231,12 +220,39 @@
                             </div>
 
                             <!-- Period Filter -->
-                            <div class="form-group">
+                            <!-- <div class="form-group">
                                 <label for="period-filter">Historical Period:</label>
                                 <select id="period-filter" class="form-control">
                                     <option value="">All Periods</option>
-                                    <!-- Options populated dynamically -->
+                                  
                                 </select>
+                            </div> -->
+                            <!--slider attempt-->
+                            <!-- <div class="form-group">
+                                <label>Year Range:</label>
+                                <div class="year-slider-container">
+                                    <div class="year-display">
+                                        <span id="year-min-display">600</span>
+                                        <span class="year-separator">—</span>
+                                        <span id="year-max-display">1900</span>
+                                        <span class="year-suffix">CE</span>
+                                    </div>
+                                    <div id="year-range-slider"></div>
+                                </div>
+                                <input type="hidden" id="search-filter1" value="">
+                                <input type="hidden" id="search-filter2" value="">
+                            </div> -->
+
+                            <div class="form-group">
+                                <label for="search-filter1">Start Year :</label>
+                                <input type="text" id="search-filter1" class="form-control" 
+                                       placeholder="e.g., 1500">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="search-filter2">End Year :</label>
+                                <input type="text" id="search-filter2" class="form-control" 
+                                       placeholder="e.g., 2000">
                             </div>
 
                             <!-- Place Type Filter -->
@@ -281,7 +297,7 @@
                 <!-- Main Map Element -->
                 <div id="map" role="main" aria-label="Interactive map of Bhakti tradition places"></div>
 
-                <!-- Heatmap Legend -->
+                <!-- Heatmap Legend
                 <div class="heatmap-legend hidden" id="heatmap-legend">
                     <div class="legend-header">
                         <h4>
@@ -302,7 +318,7 @@
                             Showing concentration of sacred places
                         </p>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Map Legend Panel -->
                 <div class="legend-panel" id="legend-panel">
@@ -326,45 +342,6 @@
                             <span class="count" id="birth-count">0</span>
                         </div>
 
-                        <div class="legend-item" data-place-type="enlightenment">
-                            <div class="legend-info">
-                                <div class="legend-marker enlightenment-marker">
-                                    <span class="material-icons">wb_sunny</span>
-                                </div>
-                                <span>Enlightenment</span>
-                            </div>
-                            <span class="count" id="enlightenment-count">0</span>
-                        </div>
-
-                        <div class="legend-item" data-place-type="samadhi">
-                            <div class="legend-info">
-                                <div class="legend-marker samadhi-marker">
-                                    <span class="material-icons">spa</span>
-                                </div>
-                                <span>Samadhi Places</span>
-                            </div>
-                            <span class="count" id="samadhi-count">0</span>
-                        </div>
-
-                        <div class="legend-item" data-place-type="temple">
-                            <div class="legend-info">
-                                <div class="legend-marker temple-marker">
-                                    <span class="material-icons">account_balance</span>
-                                </div>
-                                <span>Temples</span>
-                            </div>
-                            <span class="count" id="temple-count">0</span>
-                        </div>
-
-                        <div class="legend-item" data-place-type="influence">
-                            <div class="legend-info">
-                                <div class="legend-marker influence-marker">
-                                    <span class="material-icons">trending_up</span>
-                                </div>
-                                <span>Influence Areas</span>
-                            </div>
-                            <span class="count" id="influence-count">0</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -407,9 +384,19 @@
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="period">Historical Period *</label>
+                                    <label for="period">Period *</label>
                                     <input type="text" id="period" name="period" required 
-                                           placeholder="e.g., 17th century CE, 1608-1649">
+                                           placeholder="e.g.1608-1649">
+                                </div>
+                                <div class="form-group">
+                                    <label for="startYear">StartYear *</label>
+                                    <input type="text" id="startYear" name="startYear" required 
+                                           placeholder="e.g.1608">
+                                </div>
+                                <div class="form-group">
+                                    <label for="endYear">EndYear *</label>
+                                    <input type="text" id="endYear" name="endYear" required 
+                                           placeholder="e.g.1649">
                                 </div>
                                 <div class="form-group">
                                     <label for="gender">Gender *</label>
@@ -424,7 +411,7 @@
 
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="language">Primary Language *</label>
+                                    <label for="language"> Language *</label>
                                     <input type="text" id="language" name="language" required 
                                            placeholder="e.g., Marathi, Hindi, Tamil">
                                 </div>
@@ -485,13 +472,22 @@
                             <div class="form-group">
                                 <label for="birth-place">Birth Place</label>
                                 <div class="place-input-container">
-                                    <input type="text" id="birth-place" name="birthPlace" 
+                                    <input type="text" id="birth-place" name="birthPlace" required
                                            placeholder="Enter birth place name">
                                     <ul class="place-suggestions" id="birth-place-suggestions"></ul>
                                 </div>
                             </div>
-
-                            <!-- Enlightenment Place -->
+                                 <!-- Samadhi Place -->
+                                 <div class="form-group">
+                                    <label for="death-place">Samadhi Place</label>
+                                    <div class="place-input-container">
+                                        <input type="text" id="death-place" name="deathPlace" 
+                                               placeholder="Final resting place">
+                                        <ul class="place-suggestions" id="death-place-suggestions"></ul>
+                                    </div>
+                                </div>
+    
+                            <!-- Enlightenment Place
                             <div class="form-group">
                                 <label for="enlightenment-place">Enlightenment Place</label>
                                 <div class="place-input-container">
@@ -499,19 +495,10 @@
                                            placeholder="Place of spiritual realization">
                                     <ul class="place-suggestions" id="enlightenment-place-suggestions"></ul>
                                 </div>
-                            </div>
+                            </div> -->
 
-                            <!-- Samadhi Place -->
-                            <div class="form-group">
-                                <label for="samadhi-place">Samadhi Place</label>
-                                <div class="place-input-container">
-                                    <input type="text" id="samadhi-place" name="samadhiPlace" 
-                                           placeholder="Final resting place">
-                                    <ul class="place-suggestions" id="samadhi-place-suggestions"></ul>
-                                </div>
-                            </div>
-
-                            <!-- Important Temples -->
+                       
+                            <!-- Important Temples
                             <div class="form-group">
                                 <label for="temple-places">Important Temples/Places</label>
                                 <div class="place-input-container">
@@ -520,9 +507,9 @@
                                     <ul class="place-suggestions" id="temple-places-suggestions"></ul>
                                 </div>
                                 <small>Separate multiple places with commas</small>
-                            </div>
+                            </div> -->
 
-                            <!-- Areas of Influence -->
+                            <!-- Areas of Influence
                             <div class="form-group">
                                 <label for="influence-areas">Areas of Influence</label>
                                 <div class="place-input-container">
@@ -531,7 +518,7 @@
                                     <ul class="place-suggestions" id="influence-areas-suggestions"></ul>
                                 </div>
                                 <small>Regions where the saint's influence was significant</small>
-                            </div>
+                            </div> -->
                         </div>
 
                         <!-- Additional Information Section -->
@@ -542,7 +529,7 @@
                             </h3>
 
                             <div class="form-group">
-                                <label for="texts">Literary Works/Texts</label>
+                                <label for="texts">References</label>
                                 <input type="text" id="texts" name="texts" 
                                        placeholder="e.g., Abhanga, Dohe, Bhajans (separate with commas)">
                                 <small>Important literary works or types of compositions</small>
@@ -554,6 +541,19 @@
                                           placeholder="Brief description of the saint's key philosophical teachings and spiritual message..."></textarea>
                                 <small>Describe the main philosophical contributions and spiritual teachings</small>
                             </div>
+
+                            <!-- <div class="form-group">
+                                <label for="RelatedSaintName">Related Saints *</label>
+                                <input type = "text" id="RelatedSaintName" name="RelatedSaintName" 
+                                          placeholder="Id of Related Saint from DB "></input>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="typeOfRelation">typeOfRelation *</label>
+                                <input type = "text" id="typeOfRelation" name="typeOfRelation" 
+                                          placeholder="typeOfRelation between saints"></input>
+                            </div> -->
+
                         </div>
                     </form>
                 </div>
@@ -585,10 +585,9 @@
     <!-- Leaflet MarkerCluster Plugin -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     
-    <!-- Leaflet Heatmap Plugin -->
-    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-    
     <!-- Application Configuration and Main Script -->
     <script type="module" src="index.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/distribute/nouislider.min.js"></script> -->
+
 </body>
 </html>

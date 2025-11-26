@@ -6,11 +6,10 @@
  * filtering, heatmaps, and the contribution system.
  * 
  * FEATURES:
- * - Interactive Leaflet map with clustering and heatmaps
+ * - Interactive Leaflet map with clustering
  * - Advanced filtering system with real-time updates
  * - Place suggestions with autocomplete functionality
  * - Contribution form with validation and auto-geocoding
- * - Theme switching (light/dark/auto)
  * - Toast notifications for user feedback
  * - Responsive design for mobile devices
  * - Accessibility considerations
@@ -18,7 +17,6 @@
  * DEPENDENCIES:
  * - Leaflet.js: Interactive maps
  * - Leaflet.markercluster: Marker clustering
- * - Leaflet.heat: Heatmap functionality
  * - config.js: API configuration
  */
 
@@ -43,15 +41,21 @@ console.log('🔧 Environment:', config.getEnvironment());
 // Map and visualization components
 let map = null;
 let clusterGroup = null;
-let heatmapLayer = null;
-let currentHeatmapType = 'none';
 
+// Lineage network layer - holds arrow lines connecting saints chronologically
+let lineageLayer = null;
+let lineageEnabled = true; // Toggle for lineage network visibility
 // Data and filtering state
 let allTraditions = [];
 let filteredTraditions = [];
 let currentFilters = {};
 let selectedPlaceType = 'all';
 let filterOptions = {};
+
+// Year slider instance
+// let yearSlider = null;
+// const YEAR_MIN = 600;   // Bhakti movement start
+// const YEAR_MAX = 1900;  // End of traditional period
 
 // UI state management
 let isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -87,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeTheme();
     initializeMap();
     initializeUI();
+    // initializeYearSlider();
     initializeEventListeners();
     
     // Load data from API
@@ -159,8 +164,8 @@ function applyTheme(theme) {
  */
 function updateMapTiles(theme) {
   const tileUrls = {
-    light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    light: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+    dark: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png'
   };
   
   // Remove existing tile layers
@@ -170,20 +175,15 @@ function updateMapTiles(theme) {
     }
   });
   
-  // Add new tile layer
-  // L.tileLayer(tileUrls[theme], {
-  //   maxZoom: MAP_CONFIG.MAX_ZOOM,
-  //   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
-  // }).addTo(map);
-
-  L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+  // Add new tile layer - use tileUrls[theme] to get the correct URL
+  L.tileLayer(tileUrls[theme], {
     maxZoom: 18,
-    attribution: '© CartoDB, © OpenStreetMap contributors',
-    subdomains: ['a', 'b', 'c', 'd']
-}).addTo(map);
-
-
+    attribution: '© OpenStreetMap contributors',
+    subdomains: ['a', 'b', 'c']
+  }).addTo(map);
 }
+
+
 
 /**
  * Update theme toggle UI to reflect current selection
@@ -253,6 +253,13 @@ function initializeMap() {
   });
   
   map.addLayer(clusterGroup);
+
+  // Initialize lineage network layer (below markers but above tiles)
+  lineageLayer = L.layerGroup().addTo(map);
+  
+  // Handle cluster events to show/hide lineage lines
+  clusterGroup.on('animationend', updateLineageVisibility);
+  map.on('zoomend', updateLineageVisibility);
   
   console.log('✅ Map initialized successfully');
 }
@@ -272,7 +279,7 @@ function initializeUI() {
   if (filtersPanel) {
     filtersPanel.classList.add('hidden');
   }
-  
+
   // Initialize legend state
   const legendContent = document.querySelector('.legend-content');
   if (legendContent && isLegendCollapsed) {
@@ -288,6 +295,65 @@ function initializeUI() {
   
   console.log('✅ UI components initialized');
 }
+
+/**
+ * Initialize the year range slider using noUiSlider
+ */
+// function initializeYearSlider() {
+//   const sliderElement = document.getElementById('year-range-slider');
+  
+//   if (!sliderElement) {
+//     console.warn('Year slider element not found');
+//     return;
+//   }
+  
+//   // Create the noUiSlider
+//   yearSlider = noUiSlider.create(sliderElement, {
+//     start: [YEAR_MIN, YEAR_MAX],
+//     connect: true,
+//     step: 10,
+//     range: {
+//       'min': YEAR_MIN,
+//       'max': YEAR_MAX
+//     },
+//     format: {
+//       to: value => Math.round(value),
+//       from: value => Number(value)
+//     },
+//     tooltips: false,
+//     pips: {
+//       mode: 'values',
+//       values: [600, 800, 1000, 1200, 1400, 1600, 1800, 1900],
+//       density: 4,
+//       format: {
+//         to: value => value
+//       }
+//     }
+//   });
+  
+//   // Update display on slide
+//   yearSlider.on('update', function(values, handle) {
+//     const minYear = Math.round(values[0]);
+//     const maxYear = Math.round(values[1]);
+    
+//     document.getElementById('year-min-display').textContent = minYear;
+//     document.getElementById('year-max-display').textContent = maxYear;
+//     document.getElementById('search-filter1').value = minYear;
+//     document.getElementById('search-filter2').value = maxYear;
+//   });
+  
+//   // Apply filter when user stops sliding
+//   yearSlider.on('change', function(values, handle) {
+//     const minYear = Math.round(values[0]);
+//     const maxYear = Math.round(values[1]);
+    
+//     console.log(`📅 Year range changed: ${minYear} - ${maxYear}`);
+//     updateCurrentFilters();
+//     applyCurrentFilters();
+//   });
+  
+//   console.log('✅ Year range slider initialized');
+// }
 
 // ========================================
 // EVENT LISTENERS
@@ -332,11 +398,11 @@ function setupHeaderEventListeners() {
   if (btnFilters) {
     btnFilters.addEventListener('click', toggleFiltersPanel);
   }
-  
-  // Heatmap toggle button
-  const btnHeatmap = document.getElementById('btn-heatmap');
-  if (btnHeatmap) {
-    btnHeatmap.addEventListener('click', toggleHeatmap);
+
+  // Lineage network toggle button
+  const btnLineage = document.getElementById('btn-lineage');
+  if (btnLineage) {
+    btnLineage.addEventListener('click', toggleLineageNetwork);
   }
   
   // Contribute button
@@ -388,10 +454,13 @@ function setupFilterEventListeners() {
     closeFilters.addEventListener('click', toggleFiltersPanel);
   }
   
-  // Apply filters button
-  const applyFilters = document.getElementById('apply-filters');
-  if (applyFilters) {
-    applyFilters.addEventListener('click', applyCurrentFilters);
+  // Apply filters button - SINGLE HANDLER
+  const applyFiltersBtn = document.getElementById('apply-filters');
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => {
+      updateCurrentFilters();
+      applyCurrentFilters();
+    });
   }
   
   // Clear filters button
@@ -413,6 +482,20 @@ function setupFilterEventListeners() {
     });
   }
   
+  // Year filter inputs - Add real-time validation
+  const startYearInput = document.getElementById('search-filter1');
+  const endYearInput = document.getElementById('search-filter2');
+  
+  // Add input validation for year fields
+  [startYearInput, endYearInput].forEach(input => {
+    if (input) {
+      input.addEventListener('input', (e) => {
+        // Only allow numbers
+        e.target.value = e.target.value.replace(/[^\d]/g, '');
+      });
+    }
+  });
+
   // Filter dropdowns
   const filterSelects = document.querySelectorAll('#filters-panel select');
   filterSelects.forEach(select => {
@@ -551,13 +634,13 @@ async function loadInitialData() {
     
     allTraditions = await response.json();
     filteredTraditions = [...allTraditions];
-    
+
     updateMapMarkers();
     updateStatistics();
     updateLegendCounts();
     
     hideLoadingOverlay();
-    
+
     console.log(`✅ Loaded ${allTraditions.length} traditions successfully`);
     showToast(`Loaded ${allTraditions.length} sacred places`, 'success');
   } catch (error) {
@@ -617,13 +700,17 @@ function updateCurrentFilters() {
     language: document.getElementById('language-filter')?.value || '',
     period: document.getElementById('period-filter')?.value || '',
     placeType: document.getElementById('place-type-filter')?.value || '',
-    search: document.getElementById('search-input')?.value || ''
+    search: document.getElementById('search-input')?.value || '',
+    startYearMin: document.getElementById('search-filter1')?.value,
+    startYearMax: document.getElementById('search-filter2')?.value
   };
   
   // Remove empty values
   currentFilters = Object.fromEntries(
     Object.entries(filterInputs).filter(([_, value]) => value !== '')
   );
+  
+  console.log('📋 Updated filters:', currentFilters);
 }
 
 /**
@@ -639,6 +726,8 @@ async function applyCurrentFilters() {
       if (value) params.append(key, value);
     });
     
+    console.log('🔍 Filter query params:', params.toString());
+    
     // Fetch filtered data
     const response = await fetch(`${API_BASE}/traditions?${params}`);
     if (!response.ok) {
@@ -646,6 +735,8 @@ async function applyCurrentFilters() {
     }
     
     filteredTraditions = await response.json();
+    
+    console.log('📊 Received filtered traditions:', filteredTraditions.length);
     
     updateMapMarkers();
     updateLegendCounts();
@@ -679,6 +770,14 @@ function clearAllFilters() {
       }
     });
   }
+  
+  // Clear year filter inputs specifically
+  document.getElementById('search-filter1').value = '';
+  document.getElementById('search-filter2').value = '';
+  // Reset year slider to full range
+// if (yearSlider) {
+//   yearSlider.set([YEAR_MIN, YEAR_MAX]);
+// }
   
   // Clear current filters
   currentFilters = {};
@@ -720,18 +819,24 @@ function filterByPlaceType(placeType) {
 
 /**
  * Update map markers based on current data
+ * Uses the global filteredTraditions array
  */
 function updateMapMarkers() {
   // Clear existing markers
   clusterGroup.clearLayers();
   
-  // Add new markers
+  // Add new markers from filteredTraditions
   filteredTraditions.forEach(tradition => {
     const marker = createMarker(tradition);
     if (marker) {
       clusterGroup.addLayer(marker);
     }
   });
+
+   // Update the lineage network after markers are placed
+   if (lineageEnabled) {
+    updateLineageNetwork();
+  }
   
   console.log(`🗺️ Updated map with ${filteredTraditions.length} markers`);
 }
@@ -772,11 +877,7 @@ function createMarker(tradition) {
  */
 function createCustomIcon(type, saint) {
   const iconMap = {
-    birth: 'child_care',
-    enlightenment: 'wb_sunny',
-    samadhi: 'spa',
-    temple: 'account_balance',
-    influence: 'public'
+    birth: 'spa'
   };
   
   const icon = iconMap[type] || 'place';
@@ -805,6 +906,15 @@ function createCustomIcon(type, saint) {
 function createPopupContent(tradition) {
   const typeLabel = config.formatPlaceType(tradition.type);
   
+  // Get the year info from the original tradition data
+  const yearInfo = tradition.startYear ? 
+    `<div class="popup-field">
+      <span class="material-icons">event</span>
+      <div>
+        <strong>Period:</strong> ${tradition.startYear}${tradition.endYear ? ' - ' + tradition.endYear : ''}
+      </div>
+    </div>` : '';
+  
   return `
     <div class="popup-content">
       <div class="popup-header">
@@ -827,19 +937,12 @@ function createPopupContent(tradition) {
             <strong>Tradition:</strong> ${tradition.tradition || 'Unknown'}
           </div>
         </div>
+        ${yearInfo}
         ${tradition.traditionType ? `
         <div class="popup-field">
           <span class="material-icons">category</span>
           <div>
             <strong>Type:</strong> ${tradition.traditionType}
-          </div>
-        </div>
-        ` : ''}
-        ${tradition.period ? `
-        <div class="popup-field">
-          <span class="material-icons">schedule</span>
-          <div>
-            <strong>Period:</strong> ${tradition.period}
           </div>
         </div>
         ` : ''}
@@ -863,98 +966,295 @@ function createPopupContent(tradition) {
 }
 
 // ========================================
-// HEATMAP FUNCTIONALITY
+// LINEAGE NETWORK MANAGEMENT
 // ========================================
 
 /**
- * Toggle heatmap display
+ * Update the lineage network - creates arrow lines from earlier to later saints
+ * based on their startYear values
  */
-function toggleHeatmap() {
-  if (currentHeatmapType === 'none') {
-    showHeatmap();
-  } else {
-    hideHeatmap();
+function updateLineageNetwork() {
+  if (!lineageLayer) return;
+  
+  // Clear existing lineage lines
+  lineageLayer.clearLayers();
+  
+  // Filter traditions that have valid coordinates and startYear
+  const traditionsWithYear = filteredTraditions.filter(t => 
+    t.coords && 
+    Array.isArray(t.coords) && 
+    t.coords.length === 2 &&
+    t.startYear &&
+    !isNaN(parseInt(t.startYear, 10))
+  );
+  
+  if (traditionsWithYear.length < 2) {
+    console.log('📊 Not enough data points for lineage network');
+    return;
+  }
+  
+  // Sort by startYear (chronologically)
+  const sortedTraditions = [...traditionsWithYear].sort((a, b) => {
+    return parseInt(a.startYear, 10) - parseInt(b.startYear, 10);
+  });
+  
+  // Create connections between consecutive saints (chronological chain)
+  const connections = [];
+  for (let i = 0; i < sortedTraditions.length - 1; i++) {
+    const current = sortedTraditions[i];
+    const next = sortedTraditions[i + 1];
+    
+    connections.push({
+      from: current,
+      to: next,
+      fromYear: parseInt(current.startYear, 10),
+      toYear: parseInt(next.startYear, 10)
+    });
+  }
+  
+  console.log(`🔗 Creating ${connections.length} lineage connections`);
+  
+  // Create arrow lines for each connection
+  connections.forEach(connection => {
+    createLineageArrow(connection);
+  });
+  
+  // Update visibility based on current clustering state
+  updateLineageVisibility();
+}
+
+/**
+ * Create an arrow line between two tradition markers
+ * @param {Object} connection - Connection object with from/to traditions
+ */
+function createLineageArrow(connection) {
+  const { from, to, fromYear, toYear } = connection;
+  
+  // Create the polyline with an arrow
+  const fromLatLng = L.latLng(from.coords[0], from.coords[1]);
+  const toLatLng = L.latLng(to.coords[0], to.coords[1]);
+  
+  // Calculate the year difference for color intensity
+  const yearDiff = toYear - fromYear;
+  const opacity = Math.max(0.3, Math.min(0.8, 0.3 + (yearDiff / 500) * 0.5));
+  
+  // Create a curved line (using a bezier-like approach with intermediate point)
+  const midLat = (from.coords[0] + to.coords[0]) / 2;
+  const midLng = (from.coords[1] + to.coords[1]) / 2;
+  
+  // Add some curve offset based on distance
+  const distance = fromLatLng.distanceTo(toLatLng);
+  const curveOffset = Math.min(distance * 0.0001, 2); // Limit curve
+  
+  // Create intermediate point for curve (offset perpendicular to the line)
+  const dx = to.coords[1] - from.coords[1];
+  const dy = to.coords[0] - from.coords[0];
+  const perpLat = midLat + (dx * curveOffset * 0.01);
+  const perpLng = midLng - (dy * curveOffset * 0.01);
+  
+  // Create polyline with curve
+  const linePoints = [
+    fromLatLng,
+    L.latLng(perpLat, perpLng),
+    toLatLng
+  ];
+  
+  // Main line
+  const polyline = L.polyline(linePoints, {
+    color: getLineageColor(fromYear),
+    weight: 2,
+    opacity: opacity,
+    smoothFactor: 1,
+    dashArray: '5, 10',
+    className: 'lineage-line'
+  });
+  
+  // Store connection data on the polyline for visibility checking
+  polyline._lineageData = {
+    fromCoords: from.coords,
+    toCoords: to.coords,
+    fromSaint: from.saint,
+    toSaint: to.saint,
+    fromYear: fromYear,
+    toYear: toYear
+  };
+  
+  // Add tooltip showing connection info
+  const tooltipContent = `
+    <div class="lineage-tooltip">
+      <strong>${from.saint}</strong> (${fromYear} CE)
+      <br/>↓<br/>
+      <strong>${to.saint}</strong> (${toYear} CE)
+      <br/><small>${toYear - fromYear} years</small>
+    </div>
+  `;
+  polyline.bindTooltip(tooltipContent, {
+    sticky: true,
+    className: 'lineage-tooltip-container'
+  });
+  
+  // Add arrow head at the end
+  const arrowHead = createArrowHead(linePoints[linePoints.length - 2], toLatLng, getLineageColor(fromYear), opacity);
+  
+  // Add to lineage layer
+  lineageLayer.addLayer(polyline);
+  if (arrowHead) {
+    lineageLayer.addLayer(arrowHead);
   }
 }
 
 /**
- * Show heatmap layer
+ * Create an arrow head marker at the end of a line
+ * @param {L.LatLng} fromPoint - Point before the arrow
+ * @param {L.LatLng} toPoint - Arrow tip position
+ * @param {string} color - Arrow color
+ * @param {number} opacity - Arrow opacity
+ * @returns {L.Marker} Arrow head marker
  */
-function showHeatmap() {
-  if (!FEATURES.HEATMAP_ENABLED) {
-    showToast('Heatmap feature is not enabled', 'warning');
+function createArrowHead(fromPoint, toPoint, color, opacity) {
+  // Calculate angle from the last segment
+  const angle = Math.atan2(
+    toPoint.lat - fromPoint.lat,
+    toPoint.lng - fromPoint.lng
+  ) * (180 / Math.PI);
+  
+  // Create arrow head using SVG
+  const arrowIcon = L.divIcon({
+    html: `
+      <svg viewBox="0 0 20 20" style="transform: rotate(${angle - 90}deg); opacity: ${opacity};">
+        <path d="M10 0 L20 20 L10 15 L0 20 Z" fill="${color}" />
+      </svg>
+    `,
+    className: 'lineage-arrow-head',
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  });
+  
+  return L.marker(toPoint, { 
+    icon: arrowIcon, 
+    interactive: false,
+    zIndexOffset: -1000 
+  });
+}
+
+/**
+ * Get color for lineage line based on century/era
+ * @param {number} year - Start year
+ * @returns {string} Hex color code
+ */
+function getLineageColor(year) {
+  // Color gradient from early (gold) to late (deep purple)
+  if (year < 800) return '#FFD700';      // Gold - Early period
+  if (year < 1000) return '#FFA500';     // Orange
+  if (year < 1200) return '#FF6B6B';     // Coral
+  if (year < 1400) return '#E066FF';     // Purple
+  if (year < 1600) return '#9370DB';     // Medium purple
+  if (year < 1800) return '#6B5B95';     // Deep purple
+  return '#4A4A6A';                       // Dark slate - Modern
+}
+
+/**
+ * Update visibility of lineage lines based on clustering state
+ * Lines should be hidden when their connected markers are clustered
+ */
+function updateLineageVisibility() {
+  if (!lineageLayer || !clusterGroup) return;
+  
+  const currentZoom = map.getZoom();
+  const disableClusteringZoom = 15;
+  
+  // If clustering is disabled, show all lines
+  if (currentZoom >= disableClusteringZoom) {
+    lineageLayer.eachLayer(layer => {
+      if (layer.setStyle) {
+        layer.setStyle({ opacity: layer.options.opacity || 0.5 });
+      } else if (layer._icon) {
+        layer._icon.style.display = '';
+      }
+    });
     return;
   }
   
-  // Prepare heatmap data
-  const heatData = filteredTraditions
-    .filter(tradition => tradition.coords && tradition.coords.length === 2)
-    .map(tradition => [tradition.coords[0], tradition.coords[1], 1]);
-  
-  if (heatData.length === 0) {
-    showToast('No data available for heatmap', 'warning');
-    return;
-  }
-  
-  // Create heatmap layer
-  heatmapLayer = L.heatLayer(heatData, {
-    radius: 25,
-    blur: 15,
-    maxZoom: 10,
-    gradient: {
-      0.0: 'blue',
-      0.2: 'cyan', 
-      0.4: 'lime',
-      0.6: 'yellow',
-      0.8: 'orange',
-      1.0: 'red'
+  // Get all visible (unclustered) markers
+  const visibleMarkers = [];
+  clusterGroup.eachLayer(layer => {
+    if (layer.getLatLng) {
+      const latlng = layer.getLatLng();
+      visibleMarkers.push({
+        lat: latlng.lat,
+        lng: latlng.lng
+      });
     }
   });
   
-  map.addLayer(heatmapLayer);
-  currentHeatmapType = 'density';
-  
-  // Show heatmap legend
-  const heatmapLegend = document.getElementById('heatmap-legend');
-  if (heatmapLegend) {
-    heatmapLegend.classList.remove('hidden');
-  }
-  
-  // Update button state
-  const btnHeatmap = document.getElementById('btn-heatmap');
-  if (btnHeatmap) {
-    btnHeatmap.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-  }
-  
-  showToast('Heatmap activated', 'success');
+  // Check each lineage line and hide if endpoints are clustered
+  lineageLayer.eachLayer(layer => {
+    if (layer._lineageData) {
+      const { fromCoords, toCoords } = layer._lineageData;
+      
+      // Check if both endpoints are visible (not clustered)
+      const fromVisible = isMarkerVisible(fromCoords, visibleMarkers);
+      const toVisible = isMarkerVisible(toCoords, visibleMarkers);
+      
+      // Show line only if both endpoints are visible
+      if (fromVisible && toVisible) {
+        if (layer.setStyle) {
+          layer.setStyle({ opacity: layer.options.opacity || 0.5 });
+        }
+      } else {
+        if (layer.setStyle) {
+          layer.setStyle({ opacity: 0 });
+        }
+      }
+    } else if (layer._icon) {
+      // This is an arrow head - check parent line visibility
+      // For simplicity, we'll check if the arrow's position is visible
+      const arrowPos = layer.getLatLng();
+      const isVisible = visibleMarkers.some(m => 
+        Math.abs(m.lat - arrowPos.lat) < 0.001 && 
+        Math.abs(m.lng - arrowPos.lng) < 0.001
+      );
+      layer._icon.style.display = isVisible ? '' : 'none';
+    }
+  });
 }
 
 /**
- * Hide heatmap layer
+ * Check if a marker at given coordinates is visible (not clustered)
+ * @param {Array} coords - [lat, lng] coordinates
+ * @param {Array} visibleMarkers - Array of visible marker positions
+ * @returns {boolean} True if marker is visible
  */
-function hideHeatmap() {
-  if (heatmapLayer) {
-    map.removeLayer(heatmapLayer);
-    heatmapLayer = null;
-  }
-  
-  currentHeatmapType = 'none';
-  
-  // Hide heatmap legend
-  const heatmapLegend = document.getElementById('heatmap-legend');
-  if (heatmapLegend) {
-    heatmapLegend.classList.add('hidden');
-  }
-  
-  // Reset button state
-  const btnHeatmap = document.getElementById('btn-heatmap');
-  if (btnHeatmap) {
-    btnHeatmap.style.backgroundColor = '';
-  }
-  
-  showToast('Heatmap deactivated', 'info');
+function isMarkerVisible(coords, visibleMarkers) {
+  const tolerance = 0.0001; // Small tolerance for floating point comparison
+  return visibleMarkers.some(m => 
+    Math.abs(m.lat - coords[0]) < tolerance && 
+    Math.abs(m.lng - coords[1]) < tolerance
+  );
 }
 
+/**
+ * Toggle lineage network visibility
+ */
+function toggleLineageNetwork() {
+  lineageEnabled = !lineageEnabled;
+  
+  if (lineageEnabled) {
+    updateLineageNetwork();
+    showToast('Lineage network enabled', 'info');
+  } else {
+    if (lineageLayer) {
+      lineageLayer.clearLayers();
+    }
+    showToast('Lineage network disabled', 'info');
+  }
+  
+  // Update button state
+  const btnLineage = document.getElementById('btn-lineage');
+  if (btnLineage) {
+    btnLineage.classList.toggle('active', lineageEnabled);
+  }
+}
 // ========================================
 // UI PANEL MANAGEMENT
 // ========================================
@@ -1069,10 +1369,13 @@ async function handleContributionSubmit(e) {
     showLoadingOverlay('Submitting contribution...');
     
     const formData = new FormData(e.target);
+    
     const contributionData = {
       saint: formData.get('saint'),
       tradition: formData.get('tradition'),
-      period: formData.get('period'),
+      startYear : formData.get('startYear'),
+      endYear: formData.get('endYear'),
+      period : formData.get('period'),
       traditionType: formData.get('traditionType'),
       gender: formData.get('gender'),
       language: formData.get('language'),
@@ -1081,12 +1384,15 @@ async function handleContributionSubmit(e) {
       sufi: formData.has('sufi'),
       texts: formData.get('texts')?.split(',').map(t => t.trim()).filter(Boolean) || [],
       philosophy: formData.get('philosophy'),
+      birthPlace: formData.get("birthPlace") || "",
+      deathPlace: formData.get("deathPlace") || "",
       places: {
         birth: processPlaceInput(formData.get('birthPlace')),
-        enlightenment: processPlaceInput(formData.get('enlightenmentPlace')),
-        samadhi: processPlaceInput(formData.get('samadhiPlace')),
-        temple: processPlaceArrayInput(formData.get('templePlaces')),
-        influence: processPlaceArrayInput(formData.get('influenceAreas'))
+        death: processPlaceInput(formData.get('deathPlace')),
+      },
+      relatedSaints : {
+        id : formData.get('RelatedSaintName'),
+        type : formData.get('typeOfRelation')
       }
     };
     
@@ -1135,24 +1441,6 @@ function processPlaceInput(input) {
   };
 }
 
-/**
- * Process multiple place inputs (comma-separated)
- * @param {string} input - Places input string
- * @returns {Array|null} Array of processed place objects
- */
-function processPlaceArrayInput(input) {
-  if (!input || !input.trim()) return null;
-  
-  return input.split(',')
-    .map(place => place.trim())
-    .filter(Boolean)
-    .map(name => ({
-      name,
-      coords: null,
-      region: null
-    }));
-}
-
 // ========================================
 // PLACE SUGGESTIONS SYSTEM
 // ========================================
@@ -1162,11 +1450,7 @@ function processPlaceArrayInput(input) {
  */
 function setupPlaceSuggestions() {
   const suggestionInputs = [
-    'birth-place',
-    'enlightenment-place',
-    'samadhi-place',
-    'temple-places',
-    'influence-areas'
+    'birth-place','death-place'
   ];
   
   suggestionInputs.forEach(inputId => {
@@ -1263,22 +1547,12 @@ function setupSinglePlaceSuggestion(input) {
  */
 async function fetchPlaceSuggestions(query, suggestionsList, input) {
   try {
-    // Check cache first
-    if (suggestionCache.has(query)) {
-      displaySuggestions(suggestionCache.get(query), suggestionsList, input);
-      return;
-    }
-    
     const response = await fetch(`${API_BASE}/suggest-places/${encodeURIComponent(query)}`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
     
     const suggestions = await response.json();
-    
-    // Cache results
-    suggestionCache.set(query, suggestions);
-    
     displaySuggestions(suggestions, suggestionsList, input);
   } catch (error) {
     console.error('❌ Failed to fetch place suggestions:', error);
@@ -1394,11 +1668,7 @@ function updateStatistics() {
 function updateLegendCounts() {
   // Count places by type
   const counts = {
-    birth: 0,
-    enlightenment: 0,
-    samadhi: 0,
-    temple: 0,
-    influence: 0
+    birth: 0
   };
   
   filteredTraditions.forEach(tradition => {

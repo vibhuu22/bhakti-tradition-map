@@ -69,7 +69,7 @@ const config = {
   // ========================================
   
   UI_CONFIG: {
-    THEME: 'light',              // Default theme ('light', 'dark', 'auto')
+    THEME: 'dark',              // Default theme ('light', 'dark', 'auto')
     ANIMATION_DURATION: 300,     // Default animation duration (milliseconds)
     TOAST_DURATION: 5000,        // Toast notification display time
     SEARCH_DEBOUNCE: 300,        // Input debounce delay for search
@@ -105,7 +105,6 @@ const config = {
   // ========================================
   
   FEATURES: {
-    HEATMAP_ENABLED: true,        // Enable heatmap visualization
     CLUSTERING_ENABLED: true,     // Enable marker clustering
     PLACE_SUGGESTIONS: true,      // Enable place name suggestions
     CONTRIBUTION_FORM: true,      // Enable contribution functionality
@@ -130,20 +129,12 @@ const config = {
   MARKER_CONFIG: {
     // Colors for different place types
     COLORS: {
-      birth: '#e74c3c',          // Red for birth places
-      enlightenment: '#f39c12',  // Orange for enlightenment places
-      samadhi: '#9b59b6',        // Purple for samadhi places
-      temple: '#3498db',         // Blue for temples
-      influence: '#27ae60'       // Green for areas of influence
+      birth: '#f39c12'       // orange for birth places
     },
     
     // Marker icons (using Material Icons)
     ICONS: {
-      birth: 'child_care',
-      enlightenment: 'wb_sunny',
-      samadhi: 'spa',
-      temple: 'account_balance',
-      influence: 'public'
+      birth: 'spa'
     },
     
     // Clustering configuration
@@ -158,25 +149,7 @@ const config = {
     }
   },
 
-  // ========================================
-  // HEATMAP CONFIGURATION
-  // ========================================
-  
-  HEATMAP_CONFIG: {
-    RADIUS: 25,                  // Heatmap point radius
-    BLUR: 15,                    // Heatmap blur amount
-    MAX_ZOOM: 10,                // Maximum zoom for heatmap visibility
-    
-    // Gradient colors for heatmap
-    GRADIENT: {
-      0.0: 'blue',
-      0.2: 'cyan',
-      0.4: 'lime',
-      0.6: 'yellow',
-      0.8: 'orange',
-      1.0: 'red'
-    }
-  }
+ 
 };
 
 // ========================================
@@ -237,7 +210,7 @@ config.getEnvironment = () => isLocalDevelopment ? 'development' : 'production';
  * @returns {string} Hex color code
  */
 config.getMarkerColor = (placeType) => {
-  return config.MARKER_CONFIG.COLORS[placeType] || '#666666';
+  return config.MARKER_CONFIG.COLORS[placeType] ;
 };
 
 /**
@@ -246,7 +219,7 @@ config.getMarkerColor = (placeType) => {
  * @returns {string} Material icon name
  */
 config.getMarkerIcon = (placeType) => {
-  return config.MARKER_CONFIG.ICONS[placeType] || 'place';
+  return config.MARKER_CONFIG.ICONS[placeType] ;
 };
 
 /**
@@ -256,11 +229,7 @@ config.getMarkerIcon = (placeType) => {
  */
 config.formatPlaceType = (placeType) => {
   const formatMap = {
-    birth: 'Birth Place',
-    enlightenment: 'Enlightenment Place',
-    samadhi: 'Samadhi Place',
-    temple: 'Temple',
-    influence: 'Area of Influence'
+    birth: 'Birth Place'
   };
   
   return formatMap[placeType] || placeType.charAt(0).toUpperCase() + placeType.slice(1);

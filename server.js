@@ -57,7 +57,7 @@ function validateContributionBody(body) {
   const errors = [];
   
   // Required string fields validation
-  const requiredFields = ['saint', 'tradition', 'period', 'traditionType', 'gender', 'language', 'philosophy'];
+  const requiredFields = ['saint', 'tradition', 'period', 'startYear', 'endYear','traditionType', 'gender', 'language', 'philosophy', 'birthPlace'];
   
   requiredFields.forEach(field => {
     if (!body[field] || typeof body[field] !== 'string' || !body[field].trim()) {
@@ -86,10 +86,12 @@ async function geocodePlace(placeName) {
     
     // Construct Nominatim API URL with India country filter
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1&countrycodes=in`;
+
+    // const url = 'https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1&countrycodes=in';
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Bhakti-Tradition-Map/1.0 (contact@example.com)'
+        'Vibhanshu': 'Bhakti-Tradition-Map/1.0 (vibhuuu.22@gmail.com)'
       }
     });
 
@@ -135,7 +137,7 @@ async function geocodePlace(placeName) {
  * @returns {Object} - Processed places with coordinates
  */
 async function normalizeAndGeocodePlaces(places = {}) {
-  const placeTypes = ['birth', 'enlightenment', 'samadhi', 'temple', 'influence'];
+  const placeTypes = ['birth', 'samadhi'];
   const geocodedPlaces = {};
   
   for (const type of placeTypes) {
@@ -218,6 +220,8 @@ function convertToMapMarkers(doc) {
       traditionType: doc.traditionType,
       gender: doc.gender,
       period: doc.period,
+      startYear: doc.startYear,
+      endYear: doc.endYear,
       language: doc.language,
       philosophy: doc.philosophy,
       texts: doc.texts || [],
@@ -327,11 +331,14 @@ const client = new MongoClient(MONGODB_URI, {
       return res.json([]);
     }
     
+    // const apiKey = 'YOUR_GEOAPIFY_API_KEY';
+    // const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=50000`;
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=in`;
+    // const url = `https://api.geoapify.com/v2/places?categories=commercial.supermarket&filter=rect%3A10.716463143326969%2C48.755151258420966%2C10.835314015356737%2C48.680903341613316&limit=20&apiKey=4a3e4e0eda6e493db5f31d4e4286f424`;
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Bhakti-Tradition-Map/1.0 (contact@example.com)'
+        'User-vibhu': 'Bhakti-Tradition-Map/1.0 (vibhu@example.com)'
       }
     });
     
@@ -415,8 +422,11 @@ const client = new MongoClient(MONGODB_URI, {
       language,
       saint,
       placeType,
-      search
+      search,
+      startYearMin, 
+      startYearMax
     } = req.query;
+
     
     // Build MongoDB filter query
     const filter = {};
@@ -439,6 +449,43 @@ const client = new MongoClient(MONGODB_URI, {
         { philosophy: new RegExp(String(search), 'i') }
       ];
     }
+
+    if (startYearMin || startYearMax) {
+      const yearConditions = [];
+      
+      if (startYearMin) {
+        const minYear = parseInt(startYearMin, 10);
+        if (!isNaN(minYear)) {
+          yearConditions.push({
+            $expr: {
+              $gte: [{ $toInt: { $ifNull: ['$startYear', '0'] } }, minYear]
+            }
+          });
+        }
+      }
+      
+      if (startYearMax) {
+        const maxYear = parseInt(startYearMax, 10);
+        if (!isNaN(maxYear)) {
+          yearConditions.push({
+            $expr: {
+              $lte: [{ $toInt: { $ifNull: ['$startYear', '9999'] } }, maxYear]
+            }
+          });
+        }
+      }
+      
+      // Add year conditions to the filter using $and
+      if (yearConditions.length > 0) {
+        if (filter.$and) {
+          filter.$and.push(...yearConditions);
+        } else {
+          filter.$and = yearConditions;
+        }
+      }
+    }
+
+
     
     console.log('🔍 Filter query:', filter);
     
@@ -492,13 +539,18 @@ const client = new MongoClient(MONGODB_URI, {
       tradition: body.tradition.trim(),
       places: geocodedPlaces,
       period: body.period.trim(),
+      startYear : body.startYear.trim(),
+      endYear: body.endYear.trim(),
       traditionType: body.traditionType.trim(),
       school: body.school ? body.school.trim() : null,
       presidingDeity: body.presidingDeity ? body.presidingDeity.trim() : null,
       sufi: Boolean(body.sufi),
+      birthPlace: body.birthPlace.trim(),
+      deathPlace: body.deathPlace.trim(),
       gender: body.gender.trim(),
       language: body.language.trim(),
       texts: Array.isArray(body.texts) ? body.texts : (body.texts ? [body.texts] : []),
+      relatedSaints: Array.isArray(body.RelatedSaintName) ? body.texts : (body.typeOfRelation ? [body.texts] : []),
       philosophy: body.philosophy.trim(),
       contributedAt: new Date(),
       updatedAt: new Date()
