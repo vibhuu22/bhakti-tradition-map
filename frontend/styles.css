@@ -1654,7 +1654,7 @@ header {
 
 .lineage-line:hover {
   stroke-width: 3px !important;
-  opacity: 1 !important;
+  opacity: 5 !important;
 }
 
 /* Arrow head marker */
