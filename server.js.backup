@@ -7,12 +7,19 @@
  * - Geocoding services for place names
  * - Contribution system for new saint information
  * - Filter options for frontend filtering
+<<<<<<< HEAD
+=======
  * - Static file serving for frontend
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
  * 
  * Key Features:
  * - Auto-geocoding using Nominatim (OpenStreetMap)
  * - Advanced filtering with MongoDB queries
+<<<<<<< HEAD
+ * - Structured data handling for different place types
+=======
  * - Intelligent language/tradition parsing
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
  * - Error handling and validation
  * - CORS support for cross-origin requests
  */
@@ -22,6 +29,8 @@ import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import { MongoClient } from 'mongodb';
+<<<<<<< HEAD
+=======
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -29,6 +38,7 @@ import fs from 'fs';
 // ES Module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
 
 // ========================================
 // ENVIRONMENT CONFIGURATION
@@ -51,12 +61,26 @@ if (!MONGODB_URI) {
 
 /**
  * Async handler wrapper to catch errors in route handlers
+<<<<<<< HEAD
+ * Prevents repetitive try-catch blocks in route definitions
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
  */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
 /**
+<<<<<<< HEAD
+ * Validate contribution data before processing
+ * Ensures all required fields are present and valid
+ */
+function validateContributionBody(body) {
+  const errors = [];
+  
+  // Required string fields validation
+  const requiredFields = ['saint', 'tradition', 'period', 'startYear', 'endYear','traditionType', 'gender', 'language', 'philosophy', 'birthPlace'];
+=======
  * Parse compound language values into individual items
  * Handles: "Punjabi/Braj Bhasha", "Hindi (Braj, Avadhi dialects)", etc.
  */
@@ -241,6 +265,7 @@ function extractUniqueValues(values, fieldType = 'language') {
 function validateContributionBody(body) {
   const errors = [];
   const requiredFields = ['saint', 'tradition', 'period', 'startYear', 'endYear', 'traditionType', 'gender', 'language', 'philosophy', 'birthPlace'];
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   
   requiredFields.forEach(field => {
     if (!body[field] || typeof body[field] !== 'string' || !body[field].trim()) {
@@ -248,6 +273,10 @@ function validateContributionBody(body) {
     }
   });
 
+<<<<<<< HEAD
+  // Places object validation
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   if (!body.places || typeof body.places !== 'object') {
     errors.push('Field "places" is required and must be an object');
   }
@@ -256,11 +285,37 @@ function validateContributionBody(body) {
 }
 
 /**
+<<<<<<< HEAD
+ * Geocode place names using OpenStreetMap's Nominatim service
+ * Returns coordinates, display name, and region information
+ * 
+ * @param {string} placeName - Name of place to geocode
+ * @returns {Object|null} - Geocoding result with lat, lon, displayName, region
+=======
  * Geocode place names using Nominatim
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
  */
 async function geocodePlace(placeName) {
   try {
     console.log(`🔍 Geocoding: ${placeName}`);
+<<<<<<< HEAD
+    
+    // Construct Nominatim API URL with India country filter
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1&countrycodes=in`;
+
+    // const url = 'https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1&countrycodes=in';
+    
+    const response = await fetch(url, {
+      headers: {
+        'Vibhanshu': 'Bhakti-Tradition-Map/1.0 (vibhuuu.22@gmail.com)'
+      }
+    });
+
+    if (!response.ok) {
+      console.error(`❌ HTTP error! status: ${response.status}`);
+      return null;
+    }
+=======
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(placeName)}&limit=1&countrycodes=in`;
     
     const response = await fetch(url, {
@@ -268,11 +323,33 @@ async function geocodePlace(placeName) {
     });
 
     if (!response.ok) return null;
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
 
     const data = await response.json();
     
     if (Array.isArray(data) && data.length > 0) {
       const place = data[0];
+<<<<<<< HEAD
+      
+      // Extract meaningful location information
+      const displayName = place.display_name || placeName;
+      const parts = displayName.split(',');
+      const region = parts.length > 1 ? parts[1].trim() : '';
+      
+      const result = {
+        lat: parseFloat(place.lat),
+        lon: parseFloat(place.lon),
+        displayName: displayName,
+        region: region
+      };
+      
+      console.log(`✅ Successfully geocoded "${placeName}": ${result.lat}, ${result.lon}`);
+      return result;
+    } else {
+      console.warn(`⚠️ No results found for: "${placeName}"`);
+      return null;
+    }
+=======
       const displayName = place.display_name || placeName;
       const parts = displayName.split(',');
       
@@ -284,6 +361,7 @@ async function geocodePlace(placeName) {
       };
     }
     return null;
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   } catch (error) {
     console.error(`❌ Geocoding error for "${placeName}":`, error.message);
     return null;
@@ -291,7 +369,15 @@ async function geocodePlace(placeName) {
 }
 
 /**
+<<<<<<< HEAD
+ * Process and geocode all places in a contribution
+ * Handles both single places and arrays of places
+ * 
+ * @param {Object} places - Places object from contribution form
+ * @returns {Object} - Processed places with coordinates
+=======
  * Process and geocode places
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
  */
 async function normalizeAndGeocodePlaces(places = {}) {
   const placeTypes = ['birth', 'samadhi'];
@@ -299,34 +385,71 @@ async function normalizeAndGeocodePlaces(places = {}) {
   
   for (const type of placeTypes) {
     const placeData = places[type];
+<<<<<<< HEAD
+    
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     if (!placeData) {
       geocodedPlaces[type] = null;
       continue;
     }
 
+<<<<<<< HEAD
+    /**
+     * Process individual place object
+     * Geocode if coordinates are missing
+     */
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     const processPlace = async (placeObj) => {
       if (!placeObj || !placeObj.name) return null;
       
       let coords = Array.isArray(placeObj.coords) && placeObj.coords.length === 2 ? placeObj.coords : null;
       let region = placeObj.region || null;
       
+<<<<<<< HEAD
+      // Geocode if coordinates are missing
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       if (!coords) {
         const geoData = await geocodePlace(placeObj.name);
         coords = geoData ? [geoData.lat, geoData.lon] : null;
         region = region || (geoData ? geoData.region : null);
       }
       
+<<<<<<< HEAD
+      return {
+        name: placeObj.name,
+        coords: coords,
+        region: region
+      };
+    };
+
+    // Handle array of places (e.g., multiple temples)
+    if (Array.isArray(placeData)) {
+      const processedPlaces = [];
+      
+=======
       return { name: placeObj.name, coords: coords, region: region };
     };
 
     if (Array.isArray(placeData)) {
       const processedPlaces = [];
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       for (const place of placeData) {
         const processed = await processPlace(place);
         if (processed) processedPlaces.push(processed);
       }
+<<<<<<< HEAD
+      
+      geocodedPlaces[type] = processedPlaces.length ? processedPlaces : null;
+    } 
+    // Handle single place object
+    else {
+=======
       geocodedPlaces[type] = processedPlaces.length ? processedPlaces : null;
     } else {
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       geocodedPlaces[type] = await processPlace(placeData);
     }
   }
@@ -336,11 +459,27 @@ async function normalizeAndGeocodePlaces(places = {}) {
 
 /**
  * Convert tradition document to map markers
+<<<<<<< HEAD
+ * Transforms database documents into frontend-compatible marker objects
+ * 
+ * @param {Object} doc - MongoDB tradition document
+ * @returns {Array} - Array of marker objects for map display
+ */
+function convertToMapMarkers(doc) {
+  const markers = [];
+  
+  if (!doc?.places || typeof doc.places !== 'object') return markers;
+
+  /**
+   * Create marker object for a specific place and type
+   */
+=======
  */
 function convertToMapMarkers(doc) {
   const markers = [];
   if (!doc?.places || typeof doc.places !== 'object') return markers;
 
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   const createMarker = (place, type) => {
     if (!place?.coords || place.coords.length !== 2) return;
     
@@ -366,8 +505,15 @@ function convertToMapMarkers(doc) {
     });
   };
 
+<<<<<<< HEAD
+  // Process each place type
   for (const [type, placeData] of Object.entries(doc.places)) {
     if (!placeData) continue;
+    
+=======
+  for (const [type, placeData] of Object.entries(doc.places)) {
+    if (!placeData) continue;
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     if (Array.isArray(placeData)) {
       placeData.forEach(place => createMarker(place, type));
     } else {
@@ -385,15 +531,51 @@ function convertToMapMarkers(doc) {
 async function startServer() {
   const app = express();
   
+<<<<<<< HEAD
+  // ========================================
+  // MIDDLEWARE CONFIGURATION
+  // ========================================
+  
+  // CORS configuration for cross-origin requests
+  app.use(cors({
+    origin: true, // Allow all origins in development
+    credentials: false
+  }));
+  
+  // JSON body parsing middleware
+  app.use(express.json({ limit: '10mb' }));
+  
+  // Request logging middleware
+=======
   // Middleware
   app.use(cors({ origin: true, credentials: false }));
   app.use(express.json({ limit: '10mb' }));
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
   });
 
   // ========================================
+<<<<<<< HEAD
+  // DATABASE CONNECTION
+  // ========================================
+  
+// Replace this section in your server.js:
+const client = new MongoClient(MONGODB_URI, {
+  // Fix SSL issues with hosting platforms
+  tls: true,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  retryWrites: true,
+  w: 'majority'
+});
+
+=======
   // STATIC FILE SERVING
   // ========================================
   
@@ -420,6 +602,7 @@ async function startServer() {
     retryWrites: true,
     w: 'majority'
   });
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   
   await client.connect();
   const db = client.db(DB_NAME);
@@ -427,6 +610,26 @@ async function startServer() {
   
   console.log('✅ Connected to MongoDB successfully!');
   
+<<<<<<< HEAD
+  // Create indexes for better query performance
+  await traditionsCollection.createIndex({ saint: 1 });
+  await traditionsCollection.createIndex({ tradition: 1 });
+  await traditionsCollection.createIndex({ traditionType: 1 });
+  
+  // ========================================
+  // API ROUTES
+  // ========================================
+  
+  /**
+   * Health check endpoint
+   * Returns server status and environment information
+   */
+  app.get('/api/health', (req, res) => {
+    res.json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+=======
   // Create indexes
   await traditionsCollection.createIndex({ saint: 1 }).catch(() => {});
   await traditionsCollection.createIndex({ tradition: 1 }).catch(() => {});
@@ -442,10 +645,42 @@ async function startServer() {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       version: '1.0.1'
     });
   });
 
+<<<<<<< HEAD
+  /**
+   * Place name suggestions endpoint
+   * Provides autocomplete functionality for place inputs
+   * Uses OpenStreetMap Nominatim for place suggestions
+   */
+  app.get('/api/suggest-places/:query', asyncHandler(async (req, res) => {
+    const query = (req.params.query || '').trim();
+    
+    if (query.length < 3) {
+      return res.json([]);
+    }
+    
+    // const apiKey = 'YOUR_GEOAPIFY_API_KEY';
+    // const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=50000`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=in`;
+    // const url = `https://api.geoapify.com/v2/places?categories=commercial.supermarket&filter=rect%3A10.716463143326969%2C48.755151258420966%2C10.835314015356737%2C48.680903341613316&limit=20&apiKey=4a3e4e0eda6e493db5f31d4e4286f424`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'User-vibhu': 'Bhakti-Tradition-Map/1.0 (vibhu@example.com)'
+      }
+    });
+    
+    if (!response.ok) {
+      return res.json([]);
+    }
+    
+    const data = await response.json();
+    
+=======
   // Place suggestions
   app.get('/api/suggest-places/:query', asyncHandler(async (req, res) => {
     const query = (req.params.query || '').trim();
@@ -460,6 +695,7 @@ async function startServer() {
     if (!response.ok) return res.json([]);
     
     const data = await response.json();
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     const suggestions = data.map(place => ({
       name: (place.display_name || '').split(',')[0]?.trim(),
       fullName: place.display_name,
@@ -471,8 +707,18 @@ async function startServer() {
     res.json(suggestions);
   }));
 
+<<<<<<< HEAD
+  /**
+   * Filter options endpoint
+   * Provides all available filter options for frontend dropdowns
+   * Dynamically generates options from existing data
+   */
+  app.get('/api/filter-options', asyncHandler(async (req, res) => {
+    // Use aggregation pipeline for efficient unique value extraction
+=======
   // Filter options with intelligent parsing
   app.get('/api/filter-options', asyncHandler(async (req, res) => {
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     const pipeline = [
       {
         $group: {
@@ -491,13 +737,33 @@ async function startServer() {
     
     if (result.length === 0) {
       return res.json({
+<<<<<<< HEAD
+        traditions: [],
+        traditionTypes: [],
+        genders: [],
+        languages: [],
+        periods: [],
+        saints: []
+=======
         traditions: [], traditionTypes: [], genders: [],
         languages: [], periods: [], saints: []
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       });
     }
     
     const options = result[0];
     
+<<<<<<< HEAD
+    // Filter out null/undefined values and sort
+    Object.keys(options).forEach(key => {
+      if (key !== '_id') {
+        options[key] = options[key]
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b));
+      }
+    });
+    
+=======
     // Simple fields - just filter and sort
     ['traditionTypes', 'genders', 'periods', 'saints'].forEach(key => {
       if (options[key]) {
@@ -517,10 +783,42 @@ async function startServer() {
       console.log(`🕉️ Extracted ${options.traditions.length} unique traditions`);
     }
     
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     delete options._id;
     res.json(options);
   }));
 
+<<<<<<< HEAD
+  /**
+   * Traditions endpoint with advanced filtering
+   * Main endpoint for retrieving tradition markers with filters
+   * Supports text search, exact matches, and place type filtering
+   */
+  app.get('/api/traditions', asyncHandler(async (req, res) => {
+    const {
+      tradition,
+      traditionType,
+      gender,
+      period,
+      language,
+      saint,
+      placeType,
+      search,
+      startYearMin, 
+      startYearMax
+    } = req.query;
+
+    
+    // Build MongoDB filter query
+    const filter = {};
+    
+    // Text-based filters (case-insensitive regex)
+    if (tradition) filter.tradition = new RegExp(String(tradition), 'i');
+    if (period) filter.period = new RegExp(String(period), 'i');
+    if (language) filter.language = new RegExp(String(language), 'i');
+    if (saint) filter.saint = new RegExp(String(saint), 'i');
+    
+=======
   // Traditions endpoint with advanced filtering
   app.get('/api/traditions', asyncHandler(async (req, res) => {
     const { tradition, traditionType, gender, period, language, saint, placeType, search, startYearMin, startYearMax } = req.query;
@@ -583,11 +881,16 @@ async function startServer() {
       filter.language = new RegExp(escaped.join('|'), 'i');
     }
     
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     // Exact match filters
     if (traditionType) filter.traditionType = String(traditionType);
     if (gender) filter.gender = String(gender);
     
+<<<<<<< HEAD
+    // General search across multiple fields
+=======
     // General search
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     if (search) {
       filter.$or = [
         { saint: new RegExp(String(search), 'i') },
@@ -596,7 +899,10 @@ async function startServer() {
       ];
     }
 
+<<<<<<< HEAD
+=======
     // FIXED: Year range filtering with proper numeric comparison
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     if (startYearMin || startYearMax) {
       const yearConditions = [];
       
@@ -604,7 +910,13 @@ async function startServer() {
         const minYear = parseInt(startYearMin, 10);
         if (!isNaN(minYear)) {
           yearConditions.push({
+<<<<<<< HEAD
+            $expr: {
+              $gte: [{ $toInt: { $ifNull: ['$startYear', '0'] } }, minYear]
+            }
+=======
             $expr: { $gte: [{ $toInt: { $ifNull: ['$startYear', '0'] } }, minYear] }
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
           });
         }
       }
@@ -613,11 +925,46 @@ async function startServer() {
         const maxYear = parseInt(startYearMax, 10);
         if (!isNaN(maxYear)) {
           yearConditions.push({
+<<<<<<< HEAD
+            $expr: {
+              $lte: [{ $toInt: { $ifNull: ['$startYear', '9999'] } }, maxYear]
+            }
+=======
             $expr: { $lte: [{ $toInt: { $ifNull: ['$startYear', '9999'] } }, maxYear] }
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
           });
         }
       }
       
+<<<<<<< HEAD
+      // Add year conditions to the filter using $and
+      if (yearConditions.length > 0) {
+        if (filter.$and) {
+          filter.$and.push(...yearConditions);
+        } else {
+          filter.$and = yearConditions;
+        }
+      }
+    }
+
+
+    
+    console.log('🔍 Filter query:', filter);
+    
+    // Retrieve documents from database
+    const docs = await traditionsCollection
+      .find(filter)
+      .sort({ _id: -1 })
+      .limit(1000) // Prevent excessive data loading
+      .toArray();
+    
+    console.log(`📊 Found ${docs.length} traditions`);
+    
+    // Convert to map markers
+    let markers = docs.flatMap(convertToMapMarkers);
+    
+    // Filter by place type if specified
+=======
       if (yearConditions.length > 0) {
         filter.$and = filter.$and ? [...filter.$and, ...yearConditions] : yearConditions;
       }
@@ -630,6 +977,7 @@ async function startServer() {
     
     let markers = docs.flatMap(convertToMapMarkers);
     
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     if (placeType && placeType !== 'all') {
       markers = markers.filter(marker => marker.type === placeType);
     }
@@ -638,11 +986,36 @@ async function startServer() {
     res.json(markers);
   }));
 
+<<<<<<< HEAD
+  /**
+   * Contribution endpoint
+   * Handles new saint/tradition submissions with auto-geocoding
+   * Validates input data and processes place information
+   */
+=======
   // Contribution endpoint
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   app.post('/api/contribute', asyncHandler(async (req, res) => {
     console.log('📝 New contribution received');
     
     const body = req.body || {};
+<<<<<<< HEAD
+    
+    // Validate required fields
+    const validationErrors = validateContributionBody(body);
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validationErrors
+      });
+    }
+
+    // Process and geocode places
+    console.log('🌍 Processing places...');
+    const geocodedPlaces = await normalizeAndGeocodePlaces(body.places);
+
+    // Create document for database insertion
+=======
     const validationErrors = validateContributionBody(body);
     
     if (validationErrors.length > 0) {
@@ -651,27 +1024,44 @@ async function startServer() {
 
     const geocodedPlaces = await normalizeAndGeocodePlaces(body.places);
 
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     const traditionDocument = {
       saint: body.saint.trim(),
       tradition: body.tradition.trim(),
       places: geocodedPlaces,
       period: body.period.trim(),
+<<<<<<< HEAD
+      startYear : body.startYear.trim(),
+=======
       startYear: body.startYear.trim(),
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       endYear: body.endYear.trim(),
       traditionType: body.traditionType.trim(),
       school: body.school ? body.school.trim() : null,
       presidingDeity: body.presidingDeity ? body.presidingDeity.trim() : null,
       sufi: Boolean(body.sufi),
       birthPlace: body.birthPlace.trim(),
+<<<<<<< HEAD
+      deathPlace: body.deathPlace.trim(),
+      gender: body.gender.trim(),
+      language: body.language.trim(),
+      texts: Array.isArray(body.texts) ? body.texts : (body.texts ? [body.texts] : []),
+      relatedSaints: Array.isArray(body.RelatedSaintName) ? body.texts : (body.typeOfRelation ? [body.texts] : []),
+=======
       deathPlace: body.deathPlace ? body.deathPlace.trim() : null,
       gender: body.gender.trim(),
       language: body.language.trim(),
       texts: Array.isArray(body.texts) ? body.texts : (body.texts ? [body.texts] : []),
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
       philosophy: body.philosophy.trim(),
       contributedAt: new Date(),
       updatedAt: new Date()
     };
 
+<<<<<<< HEAD
+    // Insert into database
+=======
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     const result = await traditionsCollection.insertOne(traditionDocument);
     
     console.log(`✅ Contribution added successfully: ${traditionDocument.saint}`);
@@ -679,6 +1069,36 @@ async function startServer() {
     res.json({
       id: result.insertedId.toString(),
       message: `Thank you for contributing information about ${traditionDocument.saint}!`,
+<<<<<<< HEAD
+      success: true,
+      insertedId: result.insertedId.toString()
+    });
+  }));
+
+  /**
+   * Legacy places endpoint
+   * Maintains backward compatibility with older frontend versions
+   */
+  app.get('/api/places', asyncHandler(async (req, res) => {
+    const docs = await traditionsCollection
+      .find({})
+      .sort({ _id: -1 })
+      .toArray();
+    
+    const places = docs.flatMap(doc => {
+      return convertToMapMarkers(doc).map(marker => ({
+        id: marker.id,
+        name: marker.name,
+        coords: marker.coords,
+        type: marker.type,
+        saint: marker.saint,
+        tradition: marker.tradition,
+        popup: marker.popup,
+        updatedAt: marker.updatedAt
+      }));
+    });
+    
+=======
       success: true
     });
   }));
@@ -691,10 +1111,45 @@ async function startServer() {
       type: marker.type, saint: marker.saint, tradition: marker.tradition,
       popup: marker.popup, updatedAt: marker.updatedAt
     })));
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
     res.json(places);
   }));
 
   // ========================================
+<<<<<<< HEAD
+  // ERROR HANDLING
+  // ========================================
+  
+  /**
+   * Global error handler
+   * Catches all unhandled errors and returns appropriate responses
+   */
+  app.use((error, req, res, next) => {
+    console.error('💥 Server error:', error);
+    
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  /**
+   * 404 handler for undefined routes
+   */
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      error: 'Route not found',
+      path: req.originalUrl,
+      method: req.method
+    });
+  });
+
+  // ========================================
+  // SERVER STARTUP
+  // ========================================
+  
+=======
   // ERROR HANDLING & SPA FALLBACK
   // ========================================
   
@@ -725,16 +1180,26 @@ async function startServer() {
   });
 
   // Start server
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   const server = app.listen(PORT, () => {
     console.log('\n🚀 Bhakti Tradition Map API Server Started');
     console.log(`📍 Server: http://localhost:${PORT}`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);
     console.log(`🕉️ Traditions: http://localhost:${PORT}/api/traditions`);
     console.log(`🎛️ Filter options: http://localhost:${PORT}/api/filter-options`);
+<<<<<<< HEAD
+    console.log(`🔍 Place suggestions: http://localhost:${PORT}/api/suggest-places/{query}`);
+    console.log(`✨ Contribute: POST http://localhost:${PORT}/api/contribute`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  });
+
+  // Graceful shutdown handling
+=======
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}\n`);
   });
 
   // Graceful shutdown
+>>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
   process.on('SIGTERM', () => {
     console.log('🛑 SIGTERM received, shutting down gracefully');
     server.close(() => {
