@@ -386,7 +386,16 @@ async function startServer() {
   const app = express();
   
   // Middleware
-  app.use(cors({ origin: true, credentials: false }));
+  // Middleware - Allow Vercel frontend
+app.use(cors({ 
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5500',
+    'https://bhakti-tradition-map-vo8a.vercel.app',
+    'https://*.vercel.app'
+  ], 
+  credentials: false 
+}));
   app.use(express.json({ limit: '10mb' }));
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
