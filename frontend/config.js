@@ -286,8 +286,4 @@ export const {
   getMarkerColor,
   getMarkerIcon,
   formatPlaceType
-<<<<<<< HEAD
 } = config;
-=======
-} = config;
->>>>>>> 691ea82f14e705191025f727e407bd3df6c0eb15
