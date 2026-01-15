@@ -24,6 +24,8 @@
 // CONFIGURATION AND IMPORTS
 // ========================================
 
+const t1 = performance.now();
+
 import config from './config.js';
 
 // Extract configuration values
@@ -1874,5 +1876,9 @@ if (config.DEBUG) {
     console.log(`🎯 Map render #${renderCount}: ${(end - start).toFixed(2)}ms`);
   };
 }
+
+const t2 = performance.now();
+
+console.log("time to load script = " , t2-t1 ) ;
 
 console.log('✅ Bhakti Tradition Map script loaded successfully');
